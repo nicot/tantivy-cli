@@ -8,7 +8,6 @@ use std::io;
 use ansi_term::Style;
 use ansi_term::Colour::{Red, Blue, Green};
 use std::io::Write;
-use std::ascii::AsciiExt;
 use serde_json;
 
 
@@ -71,6 +70,19 @@ fn prompt_yn(msg: &str) -> bool {
     prompt_options(msg, vec!('Y', 'N')) == 'Y' 
 }
 
+fn ask_index_option() -> IndexRecordOption {
+    if prompt_yn("Should the term frequencies (per doc) be in the index") {
+        if prompt_yn("Should the term positions (per doc) be in the index") {
+            IndexRecordOption::WithFreqsAndPositions
+        }
+        else {
+            IndexRecordOption::WithFreqs
+        }
+    }
+    else {
+        IndexRecordOption::Basic
+    }
+}
 
 fn ask_add_field_text(field_name: &str, schema_builder: &mut SchemaBuilder) {
     let mut text_options = TextOptions::default();
@@ -78,28 +90,16 @@ fn ask_add_field_text(field_name: &str, schema_builder: &mut SchemaBuilder) {
         text_options = text_options.set_stored();
     }
     let is_indexed = prompt_yn("Should the field be indexed");
-    let indexing_options = if is_indexed {
+    if is_indexed {
+        let mut indexing_options = TextFieldIndexing::default();
         if prompt_yn("Should the field be tokenized") {
-            if prompt_yn("Should the term frequencies (per doc) be in the index") {
-                if prompt_yn("Should the term positions (per doc) be in the index") {
-                    TextIndexingOptions::TokenizedWithFreqAndPosition
-                }
-                else {
-                    TextIndexingOptions::TokenizedWithFreq
-                }
-            }
-            else {
-                TextIndexingOptions::TokenizedNoFreq
-            }
+            indexing_options = indexing_options.set_index_option(ask_index_option());
         }
         else {
-            TextIndexingOptions::Untokenized
-        }
+            indexing_options = indexing_options.set_tokenizer(&"raw");
+        };
+        text_options = text_options.set_indexing_options(indexing_options);
     }
-    else {
-        TextIndexingOptions::Unindexed
-    };
-    text_options = text_options.set_indexing_options(indexing_options);
     schema_builder.add_text_field(field_name, text_options);
 }
 

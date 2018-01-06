@@ -10,6 +10,7 @@ use std::fs::File;
 use tantivy::collector::chain;
 use tantivy::collector::TopCollector;
 use tantivy::collector::CountCollector;
+use tantivy::tokenizer::TokenizerManager;
 use clap::ArgMatches;
 use std::path::PathBuf;
 
@@ -58,7 +59,8 @@ fn run_bench(index_path: &Path,
     let searcher = index.searcher();
     let default_search_fields: Vec<Field> = extract_search_fields(&index.schema());
     let queries = try!(read_query_file(query_filepath).map_err(|e| format!("Failed reading the query file:  {}", e)));
-    let query_parser = QueryParser::new(index.schema(), default_search_fields);
+    let tokenizer_manager = TokenizerManager::default();
+    let query_parser = QueryParser::new(index.schema(), default_search_fields, tokenizer_manager);
     
     println!("SEARCH\n");
     println!("{}\t{}\t{}\t{}", "query", "num_terms", "num hits", "time in microsecs");

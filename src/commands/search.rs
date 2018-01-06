@@ -6,6 +6,7 @@ use tantivy;
 use tantivy::Index;
 use tantivy::query::QueryParser;
 use tantivy::schema::Field;
+use tantivy::tokenizer::TokenizerManager;
 use serde_json;
 use tantivy::schema::FieldType;
 
@@ -27,7 +28,7 @@ fn run_search(directory: &Path, query: &str) -> tantivy::Result<()> {
             |&(_, ref field_entry)| {
                 match *field_entry.field_type() {
                     FieldType::Str(ref text_field_options) => {
-                        text_field_options.get_indexing_options().is_indexed()
+                        text_field_options.get_indexing_options().is_some()
                     },
                     _ => false
                 }
@@ -35,7 +36,8 @@ fn run_search(directory: &Path, query: &str) -> tantivy::Result<()> {
         )
         .map(|(i, _)| Field(i as u32))
         .collect();
-    let query_parser = QueryParser::new(schema.clone(), default_fields);
+    let tokenizer_manager = TokenizerManager::default();
+    let query_parser = QueryParser::new(schema.clone(), default_fields, tokenizer_manager);
     let query = query_parser.parse_query(query)?;
     let searcher = index.searcher();
     let weight = query.weight(&searcher)?;

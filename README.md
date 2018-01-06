@@ -108,30 +108,36 @@ Answer the questions as follows:
     Add another field (Y/N) ? N
 
     [
-    {
+      {
         "name": "title",
         "type": "text",
         "options": {
-            "indexing": "position",
-            "stored": true
+          "indexing": {
+            "record": "position",
+            "tokenizer": "default"
+          },
+          "stored": true
         }
-    },
-    {
+      },
+      {
         "name": "body",
         "type": "text",
         "options": {
-            "indexing": "position",
-            "stored": true
+          "indexing": {
+            "record": "position",
+            "tokenizer": "default"
+          },
+          "stored": true
         }
-    },
-    {
+      },
+      {
         "name": "url",
         "type": "text",
         "options": {
-            "indexing": "unindexed",
-            "stored": true
+          "indexing": null,
+          "stored": true
         }
-    }
+      }
     ]
 
 

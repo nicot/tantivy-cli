@@ -39,6 +39,7 @@ use tantivy::schema::Field;
 use tantivy::schema::FieldType;
 use tantivy::schema::NamedFieldDocument;
 use tantivy::schema::Schema;
+use tantivy::tokenizer::TokenizerManager;
 use tantivy::TimerTree;
 use urlencoded::UrlEncodedQuery;
 
@@ -83,7 +84,7 @@ impl IndexServer {
                 |&(_, ref field_entry)| {
                     match *field_entry.field_type() {
                         FieldType::Str(ref text_field_options) => {
-                            text_field_options.get_indexing_options().is_indexed()
+                            text_field_options.get_indexing_options().is_some()
                         },
                         _ => false
                     }
@@ -91,7 +92,8 @@ impl IndexServer {
             )
             .map(|(i, _)| Field(i as u32))
             .collect();
-        let query_parser = QueryParser::new(schema.clone(), default_fields);
+        let tokenizer_manager = TokenizerManager::default();
+        let query_parser = QueryParser::new(schema.clone(), default_fields, tokenizer_manager);
         IndexServer {
             index: index,
             query_parser: query_parser,
